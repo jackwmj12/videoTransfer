@@ -5,11 +5,9 @@ import threading;
 import struct;  
 import os;  
 import time;  
-import sys;
-#import zlib
+import json
 import numpy
 import cv2
-import re
 
 class webCamConnect:
     def __init__(self, resolution = [640,480], remoteAddress = ("115.216.215.130", 7999), windowName = "video"):
@@ -98,35 +96,30 @@ class webCamConnect:
 
     def check_config(self):
         path=os.getcwd()
-        print(path)
-        #if os.path.exists('%s\video_config.txt'%path) is False:
-        if os.path.isfile(r'%s\video_config.txt'%path) is False:
-            f = open("video_config.txt", 'w+')
-            print("w = %d,h = %d" %(self.resolution[0],self.resolution[1]),file=f)
-            print("IP is %s:%d" %(self.remoteAddress[0],self.remoteAddress[1]),file=f)
-            print("Save pic flag:%d" %(self.interval),file=f)
-            print("image's quality is:%d,range(0~95)"%(self.img_quality),file=f)
-            f.close()
-            print("初始化配置");
+        path = path+'\\'+"client_init.jason"
+
+        if os.path.isfile(path) is False:
+            with open(path, 'w') as json_file:
+                data = {
+                    "w":self.resolution[0],
+                    "h":self.resolution[1],
+                    "ip":self.remoteAddress[0],
+                    "port":self.remoteAddress[1],
+                    "save_flag":self.interval,
+                    "quality":self.img_quality,
+                }
+                json_file.write(json.dumps(data))
+                print("初始化配置...")
         else:
-            f = open("video_config.txt", 'r+')
-            tmp_data=f.readline(50)#1 resolution
-            num_list=re.findall(r"\d+",tmp_data)
-            self.resolution[0]=int(num_list[0])
-            self.resolution[1]=int(num_list[1])
-            tmp_data=f.readline(50)#2 ip,port
-            num_list=re.findall(r"\d+",tmp_data)
-            str_tmp="%d.%d.%d.%d"%(int(num_list[0]),int(num_list[1]),int(num_list[2]),int(num_list[3]))
-            self.remoteAddress=(str_tmp,int(num_list[4]))
-            tmp_data=f.readline(50)#3 savedata_flag
-            self.interval=int(re.findall(r"\d",tmp_data)[0])
-            tmp_data=f.readline(50)#3 savedata_flag
-            #print(tmp_data)
-            self.img_quality=int(re.findall(r"\d+",tmp_data)[0])
-            self.src=911+self.img_quality
-            f.close()
-            print("读取配置")
-  
+            with open(path, 'r') as json_file:
+                data = json.load(json_file)
+                self.resolution[0] = int(data["w"])
+                self.resolution[1] = int(data["h"])
+                self.remoteAddress = (data["ip"], int(data["port"]))
+                self.interval = data["save_flag"]
+                self.img_quality = data["quality"]
+            print("读取配置...")
+
 def main():
     print("创建连接...")
     cam = webCamConnect();
