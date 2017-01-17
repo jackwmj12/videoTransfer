@@ -1,13 +1,10 @@
-#from VideoCapture import Device;  
-import socket;  
+import socket;
 import threading;  
 import struct;
 import cv2
-#import imutils
 import time
 import os
 import numpy
-#from VideoCapture import Device
 
 class webCamera:  
     def __init__(self, resolution = (640, 480), host = ("", 7999)):  
